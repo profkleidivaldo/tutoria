@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1a1f35" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Tutor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0f1220;
+      --surface:   #181d30;
+      --card:      #1e2438;
+      --border:    #2a3050;
+      --amber:     #f0a832;
+      --amber-dim: #7a5518;
+      --green:     #3ecf82;
+      --red:       #f06060;
+      --blue:      #5b8df0;
+      --text:      #e8eaf2;
+      --muted:     #6b7499;
+      --radius:    16px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden;
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    /* ── APP SHELL ── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh; /* dynamic viewport — mobile browsers */
+      position: relative;
+    }
+
+    /* ── TOP BAR ── */
+    #topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px 10px;
+      padding-top: calc(14px + env(safe-area-inset-top, 0px));
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    #topbar-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+
+    .topbar-logo {
+      font-family: 'Fraunces', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--amber);
+      flex-shrink: 0;
+    }
+
+    #topico-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+
+    #phase-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      background: rgba(91,141,240,0.15);
+      color: var(--blue);
+      border: 1px solid rgba(91,141,240,0.3);
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+    #phase-pill.fase-desafio   { background: rgba(240,168,50,0.15); color: var(--amber); border-color: rgba(240,168,50,0.3); }
+    #phase-pill.fase-avaliacao { background: rgba(240,96,96,0.12);  color: var(--red);   border-color: rgba(240,96,96,0.3); }
+    #phase-pill.fase-acerto    { background: rgba(62,207,130,0.12); color: var(--green); border-color: rgba(62,207,130,0.3); }
+
+    /* ── SCREENS ── */
+    .screen { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* ── CHAT SCREEN ── */
+    #chat-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px 14px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+
+    /* chat row */
+    .cr {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      animation: pop .2s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .cr.aluno { flex-direction: row-reverse; }
+
+    @keyframes pop {
+      from { opacity: 0; transform: scale(.94) translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .av {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+    }
+    .av.tutor { background: linear-gradient(135deg, #3a4a7c, #1a2340); }
+    .av.aluno { background: linear-gradient(135deg, var(--amber), #d08020); }
+
+    .bbl {
+      max-width: 78%;
+      padding: 11px 14px;
+      border-radius: 18px;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      position: relative;
+    }
+    .bbl.tutor {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 5px;
+      color: var(--text);
+    }
+    .bbl.aluno {
+      background: linear-gradient(135deg, #253060, #1a2340);
+      border: 1px solid #3a4a7c;
+      border-bottom-right-radius: 5px;
+      color: #dde2f8;
+    }
+    .bbl.desafio      { border-left: 3px solid var(--amber); background: #1e1a0f; }
+    .bbl.avaliacao-ok { border-left: 3px solid var(--green); background: #0f1e16; }
+    .bbl.avaliacao-erro{ border-left: 3px solid var(--red);  background: #1e0f0f; }
+
+    .fase-tag {
+      font-size: 0.67rem;
+      font-weight: 700;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      opacity: .7;
+    }
+
+    /* typing dots */
+    #typing {
+      display: none;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .dots {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      border-bottom-left-radius: 5px;
+      padding: 12px 16px;
+      display: flex; gap: 5px;
+    }
+    .dot {
+      width: 7px; height: 7px;
+      background: var(--muted);
+      border-radius: 50%;
+      animation: bonce 1s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: .15s; }
+    .dot:nth-child(3) { animation-delay: .3s;  }
+    @keyframes bonce {
+      0%,80%,100% { transform: translateY(0); }
+      40%         { transform: translateY(-6px); }
+    }
+
+    /* ── VIDEO CARD ── */
+    .video-card {
+      max-width: 82%;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--card);
+      text-decoration: none;
+      display: block;
+      animation: pop .3s ease both;
+      margin-top: 2px;
+    }
+    .vthumb { position: relative; aspect-ratio: 16/9; background: #000; overflow: hidden; }
+    .vthumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .2s; }
+    .video-card:active .vthumb img { opacity: .7; }
+    .play-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    .play-overlay svg { width: 48px; height: 48px; filter: drop-shadow(0 2px 8px rgba(0,0,0,.6)); }
+    .vinfo { padding: 10px 12px 12px; }
+    .vinfo-top { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .ytag {
+      font-size: .65rem; font-weight: 700;
+      background: rgba(240,80,80,.2); color: #f05050;
+      padding: 2px 7px; border-radius: 99px;
+    }
+    .vtitle { font-size: .82rem; font-weight: 600; color: var(--text); flex: 1; }
+    .vhint  { font-size: .7rem; color: var(--muted); }
+
+    /* ── QUICK ACTIONS ── */
+    #quick-wrap {
+      padding: 8px 14px 6px;
+      overflow-x: auto;
+      display: flex;
+      gap: 7px;
+      flex-shrink: 0;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      background: var(--bg);
+    }
+    #quick-wrap::-webkit-scrollbar { display: none; }
+    .qbtn {
+      flex-shrink: 0;
+      padding: 7px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-size: .78rem;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .15s;
+    }
+    .qbtn:active { background: var(--border); color: var(--text); transform: scale(.96); }
+
+    /* ── INPUT ── */
+    #input-wrap {
+      padding: 10px 14px;
+      padding-bottom: calc(10px + var(--safe-bottom));
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+    #msg-in {
+      flex: 1;
+      min-height: 42px;
+      max-height: 110px;
+      padding: 10px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      color: var(--text);
+      font-size: .92rem;
+      font-family: 'Outfit', sans-serif;
+      resize: none;
+      outline: none;
+      line-height: 1.45;
+      transition: border-color .2s;
+      -webkit-overflow-scrolling: touch;
+    }
+    #msg-in:focus { border-color: var(--blue); }
+    #msg-in::placeholder { color: var(--muted); }
+    #btn-send {
+      width: 42px; height: 42px;
+      background: var(--amber);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: transform .1s, background .2s;
+    }
+    #btn-send:active { transform: scale(.9); background: #d08020; }
+    #btn-send:disabled { opacity: .4; }
+    #btn-send svg { width: 16px; height: 16px; fill: #1a1208; }
+
+    /* ── TEMAS SCREEN ── */
+    #screen-temas {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .temas-header {
+      padding: 20px 18px 10px;
+      position: sticky; top: 0;
+      background: var(--bg);
+      z-index: 2;
+    }
+    .temas-header h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .temas-header p { font-size: .78rem; color: var(--muted); }
+    #lista-temas-aluno { padding: 8px 14px 100px; display: flex; flex-direction: column; gap: 10px; }
+
+    .tema-card-m {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .tema-card-m::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--amber);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .tema-card-m.active::before { opacity: 1; }
+    .tema-card-m.active { border-color: rgba(240,168,50,.4); background: #1e1a0a; }
+    .tema-card-m:active { transform: scale(.98); }
+
+    .tema-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #253060, #1a2340);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .tema-info { flex: 1; min-width: 0; }
+    .tema-nome { font-size: .92rem; font-weight: 600; color: var(--text); }
+    .tema-meta { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+    .tema-chevron { color: var(--muted); font-size: 1rem; flex-shrink: 0; }
+
+    /* ── PROGRESSO SCREEN ── */
+    #screen-progresso { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .prog-header {
+      padding: 20px 18px 10px;
+      position: sticky; top: 0;
+      background: var(--bg); z-index: 2;
+    }
+    .prog-header h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.3rem; font-weight: 600; color: var(--text); margin-bottom: 3px;
+    }
+    .prog-header p { font-size: .78rem; color: var(--muted); }
+    #lista-prog-aluno { padding: 8px 14px 100px; display: flex; flex-direction: column; gap: 10px; }
+
+    .prog-card {
+      padding: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .prog-card:active { transform: scale(.98); }
+    .prog-card-top {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .prog-level-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%; flex-shrink: 0;
+    }
+    .prog-nome { font-size: .92rem; font-weight: 600; color: var(--text); flex: 1; }
+    .prog-nivel {
+      font-size: .68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .5px; padding: 2px 8px; border-radius: 99px;
+    }
+    .nivel-iniciante   { background: rgba(107,116,153,.2); color: var(--muted); }
+    .nivel-intermediário { background: rgba(91,141,240,.2); color: var(--blue); }
+    .nivel-avançado    { background: rgba(62,207,130,.2);  color: var(--green); }
+
+    .prog-stats {
+      display: flex; gap: 16px;
+    }
+    .prog-stat {
+      display: flex; align-items: center; gap: 5px;
+      font-size: .78rem; color: var(--muted);
+    }
+    .prog-stat strong { color: var(--text); }
+
+    .prog-bar-wrap {
+      margin-top: 10px;
+      height: 4px; background: var(--border); border-radius: 99px; overflow: hidden;
+    }
+    .prog-bar {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+      transition: width .6s ease;
+    }
+
+    .prog-retomar {
+      margin-top: 12px;
+      width: 100%;
+      padding: 9px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--amber);
+      font-size: .82rem;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .prog-retomar:active { background: var(--border); }
+
+    /* ── BOTTOM NAV ── */
+    #bottom-nav {
+      display: flex;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      padding-bottom: calc(4px + var(--safe-bottom));
+      position: relative; z-index: 20;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 3px;
+      padding: 10px 0;
+      background: none; border: none;
+      color: var(--muted);
+      font-size: .65rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color .2s;
+      position: relative;
+    }
+    .nav-btn.active { color: var(--amber); }
+    .nav-btn .nav-icon { font-size: 1.2rem; line-height: 1; }
+    .nav-indicator {
+      position: absolute; top: 6px;
+      width: 4px; height: 4px;
+      background: var(--amber);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .nav-btn.active .nav-indicator { opacity: 1; }
+
+    /* ── TEMAS SELECTOR SHEET (modal) ── */
+    #topics-sheet {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+    }
+    #topics-sheet.open { display: flex; }
+    .sheet-inner {
+      width: 100%;
+      background: var(--surface);
+      border-radius: 24px 24px 0 0;
+      padding: 0 0 calc(20px + var(--safe-bottom));
+      max-height: 75dvh;
+      display: flex; flex-direction: column;
+      animation: slideUp .25s ease both;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      margin: 12px auto 16px;
+      flex-shrink: 0;
+    }
+    .sheet-title {
+      font-family: 'Fraunces', serif;
+      font-size: 1.1rem; font-weight: 600;
+      color: var(--text);
+      padding: 0 20px 12px;
+      flex-shrink: 0;
+    }
+    #sheet-temas-lista {
+      overflow-y: auto;
+      padding: 0 14px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+
+    /* ── SAVE BADGE ── */
+    #save-badge {
+      position: fixed; bottom: calc(80px + var(--safe-bottom));
+      right: 16px;
+      background: rgba(62,207,130,.15);
+      color: var(--green);
+      border: 1px solid rgba(62,207,130,.3);
+      border-radius: 99px;
+      padding: 5px 12px;
+      font-size: .72rem; font-weight: 600;
+      opacity: 0;
+      transition: opacity .4s;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    /* ── EMPTY STATES ── */
+    .empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 40px 20px; text-align: center;
+      color: var(--muted); gap: 10px; flex: 1;
+    }
+    .empty-icon { font-size: 3rem; opacity: .4; }
+    .empty-text { font-size: .9rem; line-height: 1.5; max-width: 220px; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── CODE inline ── */
+    code {
+      background: rgba(255,255,255,.07);
+      padding: 1px 5px; border-radius: 4px;
+      font-size: .86em;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── TOP BAR ── -->
+  <div id="topbar">
+    <div id="topbar-left">
+      <span class="topbar-logo">Tutor</span>
+      <span id="topico-label" style="color:var(--muted);">Escolha um tema</span>
+    </div>
+    <div id="phase-pill">💬 Livre</div>
+  </div>
+
+  <!-- ════ SCREEN: CHAT ════ -->
+  <div id="screen-chat" class="screen active">
+    <div id="chat-area">
+      <!-- mensagem inicial -->
+      <div class="cr">
+        <div class="av tutor">🎓</div>
+        <div class="bbl tutor">
+          Olá! Sou seu tutor. 👋<br><br>
+          Escolha um tema abaixo para começarmos — vou explicar o conteúdo e propor desafios conforme você avança.
+        </div>
+      </div>
+      <div id="typing" class="cr">
+        <div class="av tutor">🎓</div>
+        <div class="dots">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- quick actions -->
+    <div id="quick-wrap">
+      <button class="qbtn" onclick="quickSend('Pode explicar de novo de outra forma?')">🔄 Explicar diferente</button>
+      <button class="qbtn" onclick="quickSend('Me dê um exemplo prático')">💡 Exemplo</button>
+      <button class="qbtn" onclick="exibirVideosDireto()">📺 Ver vídeos</button>
+      <button class="qbtn" onclick="quickSend('Pode aprofundar esse ponto?')">🔬 Aprofundar</button>
+    </div>
+
+    <!-- input -->
+    <div id="input-wrap">
+      <textarea id="msg-in" rows="1" placeholder="Responda ou pergunte..." onkeydown="handleKey(event)"></textarea>
+      <button id="btn-send" onclick="enviar()">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════ SCREEN: TEMAS ════ -->
+  <div id="screen-temas" class="screen">
+    <div class="temas-header">
+      <h2>Temas</h2>
+      <p>Toque em um tema para estudar</p>
+    </div>
+    <div id="lista-temas-aluno">
+      <div class="empty">
+        <div class="empty-icon">📚</div>
+        <div class="empty-text">Carregando temas...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SCREEN: PROGRESSO ════ -->
+  <div id="screen-progresso" class="screen">
+    <div class="prog-header">
+      <h2>Meu Progresso</h2>
+      <p>Seu histórico de aprendizado</p>
+    </div>
+    <div id="lista-prog-aluno">
+      <div class="empty">
+        <div class="empty-icon">🌱</div>
+        <div class="empty-text">Inicie um tema para começar a registrar seu progresso.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM NAV ── -->
+  <div id="bottom-nav">
+    <button class="nav-btn active" onclick="navTo('chat')" id="nav-chat">
+      <div class="nav-indicator"></div>
+      <span class="nav-icon">💬</span>
+      <span>Chat</span>
+    </button>
+    <button class="nav-btn" onclick="navTo('temas')" id="nav-temas">
+      <div class="nav-indicator"></div>
+      <span class="nav-icon">📚</span>
+      <span>Temas</span>
+    </button>
+    <button class="nav-btn" onclick="navTo('progresso')" id="nav-progresso">
+      <div class="nav-indicator"></div>
+      <span class="nav-icon">📊</span>
+      <span>Progresso</span>
+    </button>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ── SAVE BADGE ── -->
+<span id="save-badge">✓ Salvo</span>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  CONFIGURAÇÃO — cole a URL do seu Apps Script
+// ═══════════════════════════════════════════════════════
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyK315tq2wW2Z56eOYP6o634di3nCBSBEVyZpBrtcCLtaiT4iHtmeBKSb3W1VaRRBSUcQ/exec";
+
+// ═══════════════════════════════════════════════════════
+//  SESSÃO
+// ═══════════════════════════════════════════════════════
+let SESSION_ID = localStorage.getItem('tutor_session_id');
+if (!SESSION_ID) {
+  SESSION_ID = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+  localStorage.setItem('tutor_session_id', SESSION_ID);
+}
+
+// ═══════════════════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════════════════
+let estado = {
+  topico: '', nivel: 'iniciante', fase: 'explicacao',
+  acertos: 0, erros: 0, conceitos_vistos: [],
+  interacoes: 0, videos_exibidos: 0, historico: []
+};
+
+// ═══════════════════════════════════════════════════════
+//  NAVEGAÇÃO
+// ═══════════════════════════════════════════════════════
+let telaAtiva = 'chat';
+function navTo(tela) {
+  telaAtiva = tela;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + tela).classList.add('active');
+  document.getElementById('nav-' + tela).classList.add('active');
+  if (tela === 'progresso') carregarProgresso();
+}
+
+// ═══════════════════════════════════════════════════════
+//  CHAT — renderização
+// ═══════════════════════════════════════════════════════
+function addBubble(texto, tipo, subTipo) {
+  const area   = document.getElementById('chat-area');
+  const typing = document.getElementById('typing');
+
+  const row = document.createElement('div');
+  row.className = 'cr ' + tipo;
+
+  const av = document.createElement('div');
+  av.className = 'av ' + tipo;
+  av.textContent = tipo === 'tutor' ? '🎓' : '🧑';
+
+  const bbl = document.createElement('div');
+  bbl.className = 'bbl ' + tipo + (subTipo ? ' ' + subTipo : '');
+
+  if (subTipo === 'desafio') {
+    const tag = document.createElement('div');
+    tag.className = 'fase-tag'; tag.style.color = '#f0a832';
+    tag.textContent = '✏️ DESAFIO'; bbl.appendChild(tag);
+  } else if (subTipo === 'avaliacao-ok') {
+    const tag = document.createElement('div');
+    tag.className = 'fase-tag'; tag.style.color = '#3ecf82';
+    tag.textContent = '✅ CORRETO'; bbl.appendChild(tag);
+  } else if (subTipo === 'avaliacao-erro') {
+    const tag = document.createElement('div');
+    tag.className = 'fase-tag'; tag.style.color = '#f06060';
+    tag.textContent = '❌ REVISÃO'; bbl.appendChild(tag);
+  }
+
+  const span = document.createElement('span');
+  span.innerHTML = fmt(texto);
+  bbl.appendChild(span);
+
+  row.appendChild(av);
+  row.appendChild(bbl);
+  area.insertBefore(row, typing);
+  area.scrollTop = area.scrollHeight;
+}
+
+function fmt(t) {
+  return String(t)
+    .replace(/\s*\[SUGERIR_VIDEO:VID\d+\]\s*/gi, '')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    .replace(/_(.*?)_/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
+function showTyping(on) {
+  document.getElementById('typing').style.display = on ? 'flex' : 'none';
+  document.getElementById('btn-send').disabled = on;
+  const a = document.getElementById('chat-area');
+  a.scrollTop = a.scrollHeight;
+}
+
+function addVideoCard(video) {
+  const area   = document.getElementById('chat-area');
+  const typing = document.getElementById('typing');
+  const thumb  = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
+  const url    = `https://www.youtube.com/watch?v=${video.videoId}`;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'cr';
+
+  const av = document.createElement('div');
+  av.className = 'av tutor'; av.textContent = '🎓';
+
+  const link = document.createElement('a');
+  link.className = 'video-card';
+  link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+  link.innerHTML = `
+    <div class="vthumb">
+      <img src="${esc(thumb)}" alt="${esc(video.titulo)}" onerror="this.parentElement.style.background='#1a2340';this.style.display='none'">
+      <div class="play-overlay">
+        <svg viewBox="0 0 68 48" xmlns="http://www.w3.org/2000/svg">
+          <rect width="68" height="48" rx="14" fill="#ff0000" opacity=".92"/>
+          <polygon points="26,14 26,34 48,24" fill="white"/>
+        </svg>
+      </div>
+    </div>
+    <div class="vinfo">
+      <div class="vinfo-top">
+        <span class="ytag">▶ YouTube</span>
+        <span class="vtitle">${esc(video.titulo)}</span>
+      </div>
+      <div class="vhint">Toque para abrir ↗</div>
+    </div>`;
+
+  wrap.appendChild(av); wrap.appendChild(link);
+  area.insertBefore(wrap, typing);
+  area.scrollTop = area.scrollHeight;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ENVIAR MENSAGEM
+// ═══════════════════════════════════════════════════════
+async function enviar() {
+  const in_ = document.getElementById('msg-in');
+  const msg = in_.value.trim();
+  if (!msg) return;
+
+  addBubble(msg, 'aluno');
+  in_.value = ''; in_.style.height = 'auto';
+  estado.historico.push({ role: 'aluno', content: msg });
+  estado.interacoes++;
+  showTyping(true);
+
+  try {
+    const resp = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'tutor', mensagem: msg, estado })
+    });
+    const data = await resp.json();
+    showTyping(false);
+
+    if (data.estado) estado = { ...estado, ...data.estado };
+    estado.historico.push({ role: 'tutor', content: data.resposta });
+    if (estado.historico.length > 40) estado.historico = estado.historico.slice(-40);
+
+    let sub = '';
+    if (data.fase === 'desafio') sub = 'desafio';
+    else if (data.fase === 'avaliacao' && data.acerto === true)  sub = 'avaliacao-ok';
+    else if (data.fase === 'avaliacao' && data.acerto === false) sub = 'avaliacao-erro';
+
+    addBubble(data.resposta, 'tutor', sub);
+
+    if (data.videos && data.videos.length > 0) {
+      data.videos.forEach(v => addVideoCard(v));
+    }
+
+    atualizarPhase(data.fase || estado.fase);
+    if (data.acerto === true) estado.acertos++;
+    salvarProgresso();
+
+  } catch(e) {
+    showTyping(false);
+    addBubble('Erro de conexão. Verifique a URL do tutor.', 'tutor');
+  }
+}
+
+async function exibirVideosDireto() {
+  if (!estado.topico) { addBubble('Selecione um tema primeiro! 😊', 'tutor'); return; }
+  try {
+    const resp = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'listar_videos', tema: estado.topico })
+    });
+    const data = await resp.json();
+    const vids = data.videos || [];
+    if (!vids.length) { addBubble(`Ainda não há vídeos para "${estado.topico}". Peça ao seu professor! 🎬`, 'tutor'); return; }
+    addBubble(`📺 Vídeos sobre **${estado.topico}**:`, 'tutor');
+    vids.forEach(v => addVideoCard(v));
+    estado.videos_exibidos = (estado.videos_exibidos || 0) + vids.length;
+    navTo('chat');
+  } catch(e) { addBubble('Não consegui carregar os vídeos agora.', 'tutor'); }
+}
+
+function quickSend(msg) {
+  document.getElementById('msg-in').value = msg;
+  navTo('chat');
+  enviar();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); return; }
+  setTimeout(() => {
+    const el = document.getElementById('msg-in');
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+  }, 0);
+}
+
+// ═══════════════════════════════════════════════════════
+//  PHASE BADGE
+// ═══════════════════════════════════════════════════════
+const FASES = {
+  explicacao:     { label: '📖 Explicando',  cls: '' },
+  desafio:        { label: '✏️ Desafio',      cls: 'fase-desafio' },
+  avaliacao:      { label: '🔍 Avaliando',   cls: 'fase-avaliacao' },
+  aprofundamento: { label: '🔬 Aprofundando',cls: '' },
+};
+function atualizarPhase(fase) {
+  const pill = document.getElementById('phase-pill');
+  const cfg  = FASES[fase] || { label: '💬 Livre', cls: '' };
+  pill.textContent = cfg.label;
+  pill.className   = 'fase-' + (cfg.cls || 'livre');
+  pill.id          = 'phase-pill';
+}
+
+// ═══════════════════════════════════════════════════════
+//  TEMAS
+// ═══════════════════════════════════════════════════════
+const ICONS = ['📐','🔬','📖','🌿','🧪','🌍','📊','⚛️','🔢','🎨','🏛️','💡'];
+let temasCache = [];
+
+async function carregarTemas() {
+  try {
+    const resp = await fetch(WEB_APP_URL, {
+      method: 'POST', body: JSON.stringify({ action: 'listar_temas' })
+    });
+    const data = await resp.json();
+    temasCache = data.temas || [];
+    renderTemas();
+    return temasCache;
+  } catch(e) {
+    document.getElementById('lista-temas-aluno').innerHTML =
+      '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Erro ao conectar. Verifique a URL.</div></div>';
+    return [];
+  }
+}
+
+function renderTemas() {
+  const cont = document.getElementById('lista-temas-aluno');
+  if (!temasCache.length) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">📚</div><div class="empty-text">Nenhum conteúdo disponível ainda. Peça ao seu professor para adicionar material.</div></div>';
+    return;
+  }
+  cont.innerHTML = temasCache.map((t, i) => {
+    const ativo = t === estado.topico ? 'active' : '';
+    const icon  = ICONS[i % ICONS.length];
+    return `<div class="tema-card-m ${ativo}" onclick="selecionarTema('${t.replace(/'/g,"\\'")}', this)">
+      <div class="tema-icon">${icon}</div>
+      <div class="tema-info">
+        <div class="tema-nome">${esc(t)}</div>
+        <div class="tema-meta">${t === estado.topico ? '✦ Estudando agora' : 'Toque para estudar'}</div>
+      </div>
+      <div class="tema-chevron">›</div>
+    </div>`;
+  }).join('');
+}
+
+async function selecionarTema(tema, el) {
+  // Já está neste tema — vai direto pro chat
+  if (estado.topico === tema) { navTo('chat'); return; }
+
+  // Tem sessão ativa — confirma troca
+  if (estado.topico && estado.interacoes > 0) {
+    const ok = confirm(`Seu progresso em "${estado.topico}" será salvo.\n\nIr para "${tema}"?`);
+    if (!ok) return;
+    await salvarProgresso();
+  }
+
+  // Tenta carregar progresso salvo deste tema
+  let estadoSalvo = null;
+  try {
+    const resp = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'carregar_sessao', sessionId: SESSION_ID, tema })
+    });
+    const d = await resp.json();
+    if (d.ok && d.estado && d.estado.interacoes > 0) estadoSalvo = d.estado;
+  } catch(e) {}
+
+  if (estadoSalvo) {
+    estado = { ...estado, ...estadoSalvo };
+    if (!Array.isArray(estado.historico)) estado.historico = [];
+  } else {
+    estado = { topico: tema, nivel: 'iniciante', fase: 'explicacao', acertos: 0, erros: 0, conceitos_vistos: [], interacoes: 0, videos_exibidos: 0, historico: [] };
+  }
+
+  localStorage.setItem('tutor_ultimo_tema', tema);
+
+  // Atualiza UI do topbar
+  document.getElementById('topico-label').textContent = tema;
+  atualizarPhase(estado.fase || 'explicacao');
+
+  // Limpa chat e reconstrói
+  const area   = document.getElementById('chat-area');
+  const typing = document.getElementById('typing');
+  [...area.children].forEach(el => { if (el !== typing) el.remove(); });
+
+  const resumo = estado.historico.slice(-12);
+  if (resumo.length > 0) {
+    addBubble(`_Continuando "${tema}"..._`, 'tutor');
+    resumo.forEach(h => addBubble(h.content, h.role === 'tutor' ? 'tutor' : 'aluno'));
+  } else {
+    addBubble(`Ótimo! Vamos estudar **${tema}**. Já conhece algo sobre esse assunto ou quer que eu comece do zero?`, 'tutor');
+    estado.historico.push({ role: 'tutor', content: `Ótimo! Vamos estudar ${tema}. Já conhece algo sobre esse assunto ou quer que eu comece do zero?` });
+    salvarProgresso();
+  }
+
+  renderTemas(); // atualiza card ativo
+  navTo('chat'); // vai pro chat
+}
+
+// ═══════════════════════════════════════════════════════
+//  PROGRESSO
+// ═══════════════════════════════════════════════════════
+async function carregarProgresso() {
+  const cont = document.getElementById('lista-prog-aluno');
+  cont.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Carregando...</div></div>';
+  try {
+    const resp = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'listar_progresso_aluno', sessionId: SESSION_ID })
+    });
+    const data = await resp.json();
+    const temas = data.temas || [];
+
+    if (!temas.length) {
+      cont.innerHTML = '<div class="empty"><div class="empty-icon">🌱</div><div class="empty-text">Estude um tema para ver seu progresso aqui.</div></div>';
+      return;
+    }
+
+    const nLvl = { iniciante: 'nivel-iniciante', intermediário: 'nivel-intermediário', avançado: 'nivel-avançado' };
+    const dLvl = { iniciante: '#6b7499', intermediário: '#5b8df0', avançado: '#3ecf82' };
+
+    cont.innerHTML = temas.map(t => {
+      const pct = Math.min(100, Math.round((t.acertos / 10) * 100));
+      const dt  = t.ultimaVez ? new Date(t.ultimaVez).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '';
+      return `
+        <div class="prog-card" onclick="retomar('${t.tema.replace(/'/g,"\\'")}')">
+          <div class="prog-card-top">
+            <div class="prog-level-dot" style="background:${dLvl[t.nivel] || '#6b7499'}"></div>
+            <div class="prog-nome">${esc(t.tema)}</div>
+            <span class="prog-nivel ${nLvl[t.nivel] || 'nivel-iniciante'}">${t.nivel}</span>
+          </div>
+          <div class="prog-stats">
+            <div class="prog-stat">✅ <strong>${t.acertos}</strong> acertos</div>
+            <div class="prog-stat">🔄 <strong>${t.interacoes}</strong> trocas</div>
+            ${dt ? `<div class="prog-stat">📅 ${dt}</div>` : ''}
+          </div>
+          <div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%"></div></div>
+          <button class="prog-retomar" onclick="event.stopPropagation();retomar('${t.tema.replace(/'/g,"\\'")}')">
+            ${t.tema === estado.topico ? '▶ Continuar' : '↩ Retomar'}
+          </button>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Erro ao carregar progresso.</div></div>';
+  }
+}
+
+async function retomar(tema) {
+  await selecionarTema(tema, null);
+}
+
+// ═══════════════════════════════════════════════════════
+//  SALVAR / RESTAURAR SESSÃO
+// ═══════════════════════════════════════════════════════
+let _salvando = false;
+async function salvarProgresso() {
+  if (_salvando || !estado.topico) return;
+  _salvando = true;
+  try {
+    const resp = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'salvar_sessao', sessionId: SESSION_ID, estado })
+    });
+    const d = await resp.json();
+    if (d.ok) {
+      const badge = document.getElementById('save-badge');
+      badge.style.opacity = '1';
+      setTimeout(() => badge.style.opacity = '0', 2000);
+    }
+  } catch(e) { console.warn('Falha ao salvar:', e); }
+  finally { _salvando = false; }
+}
+
+window.addEventListener('beforeunload', () => {
+  if (!estado.topico) return;
+  const payload = JSON.stringify({ action: 'salvar_sessao', sessionId: SESSION_ID, estado });
+  navigator.sendBeacon
+    ? navigator.sendBeacon(WEB_APP_URL, new Blob([payload], { type: 'application/json' }))
+    : fetch(WEB_APP_URL, { method: 'POST', body: payload, keepalive: true }).catch(() => {});
+});
+
+async function restaurarSessao() {
+  const ultimoTema = localStorage.getItem('tutor_ultimo_tema');
+  if (!ultimoTema) return;
+  try {
+    const resp = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'carregar_sessao', sessionId: SESSION_ID, tema: ultimoTema })
+    });
+    const data = await resp.json();
+    if (!data.ok || !data.estado) return;
+
+    estado = { ...estado, ...data.estado };
+    if (!Array.isArray(estado.historico)) estado.historico = [];
+
+    document.getElementById('topico-label').textContent = estado.topico;
+    atualizarPhase(estado.fase || 'explicacao');
+
+    const resumo = estado.historico.slice(-12);
+    if (resumo.length > 0) {
+      const area   = document.getElementById('chat-area');
+      const typing = document.getElementById('typing');
+      [...area.children].forEach(el => { if (el !== typing) el.remove(); });
+      addBubble('_Sessão restaurada. Continuando..._', 'tutor');
+      resumo.forEach(h => addBubble(h.content, h.role === 'tutor' ? 'tutor' : 'aluno'));
+    }
+  } catch(e) { console.warn('Restauração falhou:', e); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+carregarTemas().then(() => restaurarSessao());
+</script>
+</body>
+</html>
